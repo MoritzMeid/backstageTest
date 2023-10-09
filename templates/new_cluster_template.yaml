@@ -37,7 +37,7 @@ spec:
       name: Register
       action: catalog:register
       input:
-        repoContentsUrl: https://github.com/MoritzMeid/backstageTest
+        repoContentsUrl: https://github.com/MoritzMeid/backstageTest/tree/master
         catalogInfoPath: "/catalog-info.yaml"
 
   output:
