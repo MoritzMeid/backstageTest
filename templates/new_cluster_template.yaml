@@ -1,0 +1,105 @@
+apiVersion: scaffolder.backstage.io/v1beta3
+# https://backstage.io/docs/features/software-catalog/descriptor-format#kind-template
+kind: Template
+metadata:
+  name: kafka-cluster-template
+  title: New Kafka Cluster
+  description: A template to provision a Kafka cluster via CFK
+  annotations:
+    backstage.io/techdocs-ref: dir:.
+spec:
+  owner: user:guest
+  type: techdocs
+
+  # These parameters are used to generate the input form in the frontend, and are
+  # used to gather input data for the execution of the template.
+  parameters:
+    - title: Define the new cluster
+      required:
+        - name
+        - namespace
+        - brokerCount
+        - brokerDiskSize
+        - repoUrl
+      properties:
+        name:
+          title: Cluster Name
+          type: string
+          description: Unique name of the cluster
+          ui:autofocus: true
+          ui:options:
+            rows: 5
+        namespace:
+          title: Namespace
+          type: string
+          description: i.e. prod-kafka-1
+          ui:options:
+            rows: 5
+        brokerCount:
+          title: Amount of Brokers
+          type: number
+          default: 1
+          description: How many brokers to provision for the cluster
+          ui:options:
+            rows: 5
+        brokerDiskSize:
+          title: Disk Size
+          type: string
+          default: 5Gi
+          description: How big should the data disk size be per broker, i.e. 5Gi
+          ui:options:
+            rows: 5
+        repoUrl:
+          title: Repository Location
+          type: string
+          ui:field: RepoUrlPicker
+          ui:options:
+            allowedHosts:
+            - codehub.sva.de
+            allowedOwners:
+            - Florian.Ollech
+
+  # These steps are executed in the scaffolder backend, using data that we gathered
+  # via the parameters above.
+  steps:
+    # Each step executes an action, in this case one templates files into the working directory.
+    - id: fetch-template
+      name: Template Cluster Manifests
+      action: fetch:template
+      input:
+        url: ./content
+        values:
+          repoUrl: ${{ parameters.repoUrl }}
+          name: ${{ parameters.name }}
+          namespace: ${{ parameters.namespace }}
+          brokerCount: ${{ parameters.brokerCount }}
+          brokerDiskSize: ${{ parameters.brokerDiskSize }}
+
+    # This step publishes the contents of the working directory to GitHub.
+    - id: publish
+      name: Publish
+      action: publish:gitlab
+      input:
+        description: |
+          Adds kafka cluster ${{ parameters.name }} to namespace ${{ parameters.namespace }}
+        repoUrl: ${{ parameters.repoUrl }}
+        defaultBranch: main
+        gitCommitMessage: "Add new kafka cluster ${{ parameters.name }} in namespace ${{ parameters.namespace }}"
+        branchName: add-topic-${{ parameters.name }}
+
+    # The final step is to register our new component in the catalog.
+    - id: register
+      name: Register
+      action: catalog:register
+      input:
+        repoContentsUrl: ${{ steps['publish'].output.repoContentsUrl }}
+        catalogInfoPath: '/catalog-info.yaml'
+
+  # Outputs are displayed to the user after a successful execution of the template.
+  output:
+    links:
+    - title: Repository
+      url: ${{ steps['publish'].output.remoteUrl }}
+    - title: Open in catalog
+      icon: catalog
+      entityRef: ${{ steps['register'].output.entityRef }}
