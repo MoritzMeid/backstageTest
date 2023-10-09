@@ -1,0 +1,29 @@
+apiVersion: scaffolder.backstage.io/v1beta3
+kind: Template
+metadata:
+  name: Create-Rancher-Cluster
+  title: Ckuster Creation
+  description: Erstellt hoffentlich einen gottverdammten Cluster
+spec:
+  owner: backstage/techdocs-core
+  type: service
+
+  parameters:
+    - title: clustern einen namen geben
+      required:
+        - name
+      properties:
+        name:
+          type: string
+
+  steps:
+    - action: http:backstage:request
+      id: http-request
+      name: Create a thing on the acme service
+      input:
+        method: POST
+        path: '/api/proxy/acme/thing'
+        headers:
+          'Content-Type': 'application/json'
+        body:
+          thingname: 'foo'
