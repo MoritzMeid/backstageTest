@@ -1,0 +1,6 @@
+catalog
+  locations:
+    - type: url
+      target: 
+      rules: 
+        - allow: [Template]
