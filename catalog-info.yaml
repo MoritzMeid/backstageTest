@@ -1,6 +1,6 @@
 catalog
   locations:
     - type: url
-      target: 
+      target: https://gitlab.sva.rocks/webcast/backstage-templates/-/raw/main/templates/test_template.yaml
       rules: 
         - allow: [Template]
